@@ -28,6 +28,8 @@ model Tramite {
   fechaCita   DateTime
   estado      String   @default("PENDIENTE")
 
+  archivoUrl   String?
+
   // NUEVOS CAMPOS PARA EL VISITANTE (LEAD)
   nombreCliente  String?  // Ej: "Pepito Pérez"
   emailCliente   String?  // Ej: "pepito@gmail.com"

@@ -12,6 +12,10 @@ export class CreateTramiteDto {
   @IsDateString()
   fechaCita: string;
 
+  @IsString()
+  @IsOptional()
+  archivoUrl?: string;
+
   // NUEVOS CAMPOS
   @IsString()
   @IsOptional()

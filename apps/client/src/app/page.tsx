@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Calendar, CheckCircle, Shield } from "lucide-react";
 import { API_URL } from "@/lib/config";
+import { supabase } from "@/lib/supabase";
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [archivo, setArchivo] = useState<File | null>(null);
 
   // Estado del formulario público
   const [formData, setFormData] = useState({
@@ -27,22 +30,50 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      // Usamos el NUEVO endpoint público
-      const res = await fetch(`${API_URL}/tramites/publico`, {
+      let archivoSubidoUrl = null;
+
+      // 1. SI HAY ARCHIVO, LO SUBIMOS PRIMERO A SUPABASE STORAGE
+      if (archivo) {
+        // Creamos un nombre único: "marca_tiempo_nombre_archivo"
+        const fileName = `${Date.now()}_${archivo.name}`;
+        
+        const { data, error } = await supabase.storage
+          .from('documentos') // Nombre de tu bucket
+          .upload(fileName, archivo);
+
+        if (error) {
+          console.error("Error subiendo archivo:", error);
+          alert("Error al subir el documento. Intenta de nuevo.");
+          setLoading(false);
+          return;
+        }
+
+        // Obtener la URL pública
+        const { data: publicUrlData } = supabase.storage
+          .from('documentos')
+          .getPublicUrl(fileName);
+          
+        archivoSubidoUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. ENVIAMOS EL FORMULARIO AL BACKEND (CON LA URL DEL ARCHIVO)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/tramites/publico`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          titulo: formData.motivo,          // Mapeamos motivo a titulo
+          titulo: formData.motivo,
           fechaCita: new Date(formData.fecha).toISOString(),
           nombreCliente: formData.nombre,
           emailCliente: formData.email,
-          telefonoCliente: formData.telefono
+          telefonoCliente: formData.telefono,
+          archivoUrl: archivoSubidoUrl // <--- ENVIAMOS EL LINK
         })
       });
 
       if (res.ok) {
         setSuccess(true);
         setFormData({ nombre: "", email: "", telefono: "", fecha: "", motivo: "" });
+        setArchivo(null);
       } else {
         alert("Hubo un error al enviar la solicitud.");
       }
@@ -171,6 +202,22 @@ export default function LandingPage() {
                             value={formData.motivo}
                             onChange={(e) => setFormData({...formData, motivo: e.target.value})}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Adjuntar Documento (PDF o Imagen)</Label>
+                        <Input 
+                            type="file" 
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    setArchivo(e.target.files[0]);
+                                }
+                            }}
+                        />
+                        <p className="text-xs text-slate-500">
+                           Opcional. Máximo 5MB.
+                        </p>
                     </div>
 
                     <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-lg py-6" disabled={loading}>
