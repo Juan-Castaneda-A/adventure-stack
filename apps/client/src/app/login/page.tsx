@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function LoginPage() {
         setError("");
 
         try {
-            const res = await fetch("http://localhost:3000/auth/login", {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),

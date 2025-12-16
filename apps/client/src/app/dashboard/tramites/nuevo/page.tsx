@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"; // (Si no tienes textarea, 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { API_URL } from "@/lib/config";
 
 export default function NuevoTramitePage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function NuevoTramitePage() {
       const token = localStorage.getItem("token");
       
       // Enviamos los datos al Backend
-      const res = await fetch("http://localhost:3000/tramites", {
+      const res = await fetch(`${API_URL}/tramites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

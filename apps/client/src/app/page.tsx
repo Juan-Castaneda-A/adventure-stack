@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Calendar, CheckCircle, Shield } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function LandingPage() {
 
     try {
       // Usamos el NUEVO endpoint público
-      const res = await fetch("http://localhost:3000/tramites/publico", {
+      const res = await fetch(`${API_URL}/tramites/publico`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

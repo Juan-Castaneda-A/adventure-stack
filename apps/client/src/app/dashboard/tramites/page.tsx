@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MessageCircle, Phone, Mail } from "lucide-react"; // Iconos para acciones
 import Link from "next/link";
+import { API_URL } from "@/lib/config";
 
 interface Tramite {
   id: string;
@@ -26,7 +27,7 @@ export default function TramitesPage() {
     const fetchTramites = async () => {
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch("http://localhost:3000/tramites", {
+        const res = await fetch(`${API_URL}/tramites`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {
