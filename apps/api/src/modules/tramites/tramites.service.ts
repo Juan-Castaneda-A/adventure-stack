@@ -16,6 +16,19 @@ export class TramitesService {
     });
   }
 
+  async update(id: string, updateTramiteDto: any) { // Usamos 'any' o 'UpdateTramiteDto'
+    return await this.prisma.tramite.update({
+      where: { id },
+      data: updateTramiteDto,
+    });
+  }
+
+  async remove(id: string) {
+    return await this.prisma.tramite.delete({
+      where: { id },
+    });
+  }
+
   // Ver TODOS los trámites (Para el Notario/Admin)
   async findAll() {
     return await this.prisma.tramite.findMany({
