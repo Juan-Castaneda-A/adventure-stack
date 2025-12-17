@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateTramiteDto } from './dto/create-tramite.dto';
 import { PrismaService } from '../../prisma.service'; // Importa Prisma (quizás tengas que ajustar la ruta ../../)
 import { Resend } from 'resend';
@@ -7,10 +7,37 @@ import { Resend } from 'resend';
 export class TramitesService {
   private resend = new Resend(process.env.RESEND_API_KEY);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Crear trámite (Recibimos los datos Y el ID del usuario logueado)
   async create(createTramiteDto: CreateTramiteDto, userId: string | null) {
+
+    // 1. VALIDACIÓN DE AGENDA (Anti-Choques) 🛡️
+    const fechaSolicitada = new Date(createTramiteDto.fechaCita);
+
+    // Definimos la ventana de tiempo (Asumimos que cada cita dura 1 hora)
+    // Buscamos si existe alguna cita que arranque menos de 1 hora antes 
+    // o menos de 1 hora después de la que queremos crear.
+    const unaHoraAntes = new Date(fechaSolicitada.getTime() - 60 * 60 * 1000);
+    const unaHoraDespues = new Date(fechaSolicitada.getTime() + 60 * 60 * 1000);
+
+    const cruceDeHorario = await this.prisma.tramite.findFirst({
+      where: {
+        fechaCita: {
+          gt: unaHoraAntes, // Greater Than (Mayor que)
+          lt: unaHoraDespues, // Less Than (Menor que)
+        },
+        // ¡OJO! Si una cita fue CANCELADA, ese horario debería estar libre, ¿verdad?
+        estado: {
+          not: 'CANCELADO'
+        }
+      }
+    });
+
+    if (cruceDeHorario) {
+      throw new ConflictException('⚠️ Lo sentimos, ese horario ya está ocupado por otro paciente. Por favor elige otra hora.');
+    }
+
     // A. Guardamos la cita en la Base de Datos (Esto ya lo tenías)
     const nuevoTramite = await this.prisma.tramite.create({
       data: {

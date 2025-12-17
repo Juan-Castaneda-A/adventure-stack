@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDateString, IsOptional, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, IsObject, IsOptional, IsEmail } from 'class-validator';
 
 export class CreateTramiteDto {
   @IsString()
@@ -15,6 +15,10 @@ export class CreateTramiteDto {
   @IsString()
   @IsOptional()
   archivoUrl?: string;
+
+  @IsOptional()
+  @IsObject()
+  detalles?: Record<string, any>;
 
   // NUEVOS CAMPOS
   @IsString()

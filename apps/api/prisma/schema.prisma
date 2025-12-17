@@ -30,6 +30,8 @@ model Tramite {
 
   archivoUrl   String?
 
+  detalles    Json?
+
   // NUEVOS CAMPOS PARA EL VISITANTE (LEAD)
   nombreCliente  String?  // Ej: "Pepito Pérez"
   emailCliente   String?  // Ej: "pepito@gmail.com"
@@ -41,4 +43,17 @@ model Tramite {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Configuracion {
+  id              String   @id @default(uuid())
+  nombreNegocio   String   @default("Mi Negocio")
+  descripcion     String   @default("Expertos en servicios profesionales.")
+  telefonoVisible String   @default("3000000000")
+  precioBase      Float    @default(0)
+  
+  // AQUÍ ESTÁ LA CLAVE: El tipo de negocio global
+  tipoNegocio     String   @default("GENERICO") // MEDICO, LEGAL, NOTARIA
+  
+  updatedAt       DateTime @updatedAt
 }

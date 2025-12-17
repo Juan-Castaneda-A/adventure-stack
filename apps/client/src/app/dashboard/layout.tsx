@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard, Users, Calendar, Settings, LogOut } from "lucide-react";
 
 export default function DashboardLayout({
@@ -120,6 +120,10 @@ export default function DashboardLayout({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="w-72 p-0">
+                            <div className="sr-only"> {/* sr-only lo oculta visualmente pero cumple la regla */}
+                                <SheetTitle>Menú de Navegación</SheetTitle>
+                                <SheetDescription>Opciones del dashboard</SheetDescription>
+                            </div>
                             <div className="p-6 bg-slate-900 text-white">
                                 <h2 className="text-lg font-bold">Menú</h2>
                                 <p className="text-xs text-slate-400">Navegación principal</p>

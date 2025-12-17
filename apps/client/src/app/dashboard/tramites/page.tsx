@@ -13,6 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { MedicalNotes } from "@/components/modules/medical/MedicalNotes";
+import { LegalCase } from "@/components/modules/legal/LegalCase";
 import Link from "next/link";
 import { API_URL } from "@/lib/config"; // Asegúrate de tener esto, o usa la URL directa si prefieres
 
@@ -25,11 +28,14 @@ interface Tramite {
   emailCliente?: string;
   telefonoCliente?: string;
   archivoUrl?: string;
+  detalles?: any;
 }
 
 export default function TramitesPage() {
   const [tramites, setTramites] = useState<Tramite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState<any>(null);
+  const [selectedTramite, setSelectedTramite] = useState<Tramite | null>(null);
 
   // Función para cargar datos
   const fetchTramites = async () => {
@@ -50,6 +56,9 @@ export default function TramitesPage() {
   };
 
   useEffect(() => {
+    fetch(`${API_URL}/configuracion`)
+      .then(res => res.json())
+      .then(setConfig);
     fetchTramites();
   }, []);
 
@@ -144,6 +153,15 @@ export default function TramitesPage() {
 
                     <TableCell>
                       <div className="font-medium text-indigo-600">{t.titulo}</div>
+
+                      {/* MOSTRAR DETALLES SI EXISTEN */}
+                      {t.detalles && (
+                        <div className="text-xs bg-slate-100 p-1 rounded mt-1 text-slate-600">
+                          {t.detalles.sintomas && <span>🤒 {t.detalles.sintomas}</span>}
+                          {t.detalles.tipo_caso && <span>⚖️ {t.detalles.tipo_caso}</span>}
+                        </div>
+                      )}
+
                       <div className="text-xs text-slate-500">
                         {new Date(t.fechaCita).toLocaleString()}
                       </div>
@@ -185,6 +203,62 @@ export default function TramitesPage() {
                         >
                           <MessageCircle className="h-5 w-5" />
                         </Button>
+
+                        <Sheet>
+                          <SheetTrigger asChild>
+                            <Button variant="outline" size="sm" onClick={() => setSelectedTramite(t)}>
+                              Ver Detalles
+                            </Button>
+                          </SheetTrigger>
+
+                          {selectedTramite && (
+                            <SheetContent className="overflow-y-auto w-[400px] sm:w-[540px]">
+                              <SheetHeader>
+                                <SheetTitle>Detalles de la Cita</SheetTitle>
+                                <SheetDescription>
+                                  Paciente: {selectedTramite.nombreCliente}
+                                </SheetDescription>
+                              </SheetHeader>
+
+                              <div className="py-6 space-y-6">
+                                {/* INFORMACIÓN BÁSICA (PARA TODOS) */}
+                                <div className="space-y-1">
+                                  <h4 className="font-medium text-sm text-slate-500">Motivo</h4>
+                                  <p className="text-lg font-bold">{selectedTramite.titulo}</p>
+                                </div>
+
+                                {/* MOSTRAR SÍNTOMAS SI EXISTEN */}
+                                {selectedTramite.detalles?.sintomas && (
+                                  <div className="bg-slate-100 p-3 rounded">
+                                    <span className="font-bold text-xs text-slate-500 uppercase">Síntomas Reportados:</span>
+                                    <p>{selectedTramite.detalles.sintomas}</p>
+                                  </div>
+                                )}
+
+                                {/* --- ZONA DE MÓDULOS INTELIGENTES --- */}
+
+                                {/* SI ES MÉDICO -> MOSTRAR LEGO MÉDICO */}
+                                {config?.tipoNegocio === 'MEDICO' && (
+                                  <MedicalNotes
+                                    tramiteId={selectedTramite.id}
+                                    detallesActuales={selectedTramite.detalles}
+                                    onSave={fetchTramites} // Recargar al guardar
+                                  />
+                                )}
+
+                                {/* SI ES ABOGADO -> MOSTRAR LEGO LEGAL */}
+                                {config?.tipoNegocio === 'LEGAL' && (
+                                  <LegalCase
+                                    tramiteId={selectedTramite.id}
+                                    detallesActuales={selectedTramite.detalles}
+                                    onSave={fetchTramites}
+                                  />
+                                )}
+
+                              </div>
+                            </SheetContent>
+                          )}
+                        </Sheet>
 
                         {/* Menú de Acciones (Cambiar Estado / Borrar) */}
                         <DropdownMenu>
